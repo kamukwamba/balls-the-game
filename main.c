@@ -13,20 +13,21 @@ typedef struct{
     Vector2 position;
     Vector2 velocity;
     Color color;
+    
     Vector2 size;
+    Texture2D texture;
+    Rectangle rect;
 }EnemyChar;
 
 
-EnemyChar CreateEnemy(int screenWidth, int screenHeight){
+EnemyChar CreateEnemy(int screenWidth, int screenHeight, Texture2D enemyTexture){
     EnemyChar enemyCr;
     enemyCr.position = (Vector2){GetRandomValue(0, screenWidth -30), GetRandomValue(30, screenHeight - 30)};
     
     enemyCr.velocity = (Vector2){GetRandomValue(1, 5), GetRandomValue(5, 12)};
     
     enemyCr.size = (Vector2){25, 25};
-    
-    enemyCr.color = (Color){230, 41, 55, 255};
-    
+    enemyCr.texture = enemyTexture; 
     return enemyCr;
 }
 
@@ -52,7 +53,7 @@ int main(void){
     float posX;
     float posY;
     float rectSize = 20;
-    int enemyCount = 5;
+    int enemyCount = 4;
     float scorecounter = 0;
     int healthCount = 100;
     int damagenormal = 5;
@@ -70,19 +71,20 @@ int main(void){
    
     //CREATE VARIABLES ::END::
     
-    
+    Texture2D playerTexture = LoadTexture("assets/sprites/mainCharSprites/player.png");
+    Texture2D enemyTexture = LoadTexture("assets/sprites/enemySprites/fire.png");
     EnemyChar enemyChars[enemyCount];
     
     
     for(int i = 0; i < enemyCount; i ++){
-        enemyChars[i] = CreateEnemy(windowX, windowY);
+        enemyChars[i] = CreateEnemy(windowX, windowY, enemyTexture);
         
     }
     
     posX = windowX/2;
     posY = windowY/2;
     
-    Texture2D playerTexture = LoadTexture("assets/sprites/mainCharSprites/player.png");
+    
     
     PlayerChar player;
     
@@ -187,8 +189,8 @@ int main(void){
             
             DrawText("Score:", 5, 0, 20, DARKGRAY);
             DrawText(currentScoreString,75, 0, 20, DARKGRAY);
-            DrawText("Health:", 5, 25, 20, DARKGRAY);
-            DrawText("100", 75, 25, 20, DARKGRAY);
+            DrawText("Health:", 5, 20, 20, DARKGRAY);
+            DrawText("100", 75, 20, 20, DARKGRAY);
             
             DrawTextureV(player.texture, player.position, WHITE);
             
@@ -196,8 +198,9 @@ int main(void){
             
                 
             for(int i = 0; i < enemyCount; i++){
+               
                 
-                DrawRectangleV(enemyChars[i].position, enemyChars[i].size, enemyChars[i].color);
+                DrawTextureV(enemyChars[i].texture,enemyChars[i].position, WHITE);
                 
             }
             
