@@ -5,29 +5,32 @@
 typedef struct{
     Vector2 position;
     Vector2 velocity;
+    Rectangle rect;
     float speed;
     Texture2D texture;
+    
 }PlayerChar;
 
 typedef struct{
     Vector2 position;
     Vector2 velocity;
     Color color;
-    
     Vector2 size;
     Texture2D texture;
     Rectangle rect;
+    bool isHit;
 }EnemyChar;
 
 
 EnemyChar CreateEnemy(int screenWidth, int screenHeight, Texture2D enemyTexture){
     EnemyChar enemyCr;
-    enemyCr.position = (Vector2){GetRandomValue(0, screenWidth -30), GetRandomValue(30, screenHeight - 30)};
+    enemyCr.position = (Vector2){GetRandomValue(0, screenWidth - enemyCr.texture.width), GetRandomValue(enemyCr.texture.height, screenHeight - enemyCr.texture.height)};
     
     enemyCr.velocity = (Vector2){GetRandomValue(1, 5), GetRandomValue(5, 12)};
     
-    enemyCr.size = (Vector2){25, 25};
+    enemyCr.size = (Vector2){20, 20};
     enemyCr.texture = enemyTexture; 
+    enemyCr.isHit = false;
     return enemyCr;
 }
 
@@ -56,6 +59,7 @@ int main(void){
     int enemyCount = 4;
     float scorecounter = 0;
     int healthCount = 100;
+    char healthCountStr[4] = "100";
     int damagenormal = 5;
     
   
@@ -81,6 +85,10 @@ int main(void){
         
     }
     
+    
+    
+    //COLLISION CHECK 
+  
     posX = windowX/2;
     posY = windowY/2;
     
@@ -92,6 +100,9 @@ int main(void){
     player.velocity = (Vector2){0,0};
     player.speed = 10;
     player.texture = playerTexture;
+    
+    
+    
     //mainSprite = LoadTexture("assest/sprites/mainCharSprites/mainChar.png")
     
     SetTargetFPS(60);
@@ -130,6 +141,7 @@ int main(void){
         player.position.x += player.velocity.x;
         player.position.y += player.velocity.y;
         
+        player.rect = (Rectangle){player.position.x, player.position.y,player.texture.width, player.texture.height};
         
         if(player.position.x < 0) player.position.x = 0;
         if(player.position.x > windowX - player.texture.width) player.position.x = windowX - player.texture.width; 
@@ -140,23 +152,7 @@ int main(void){
         //PLAYER CODE ::END::
       
         //ENEMY CODE ::START::
-        if(enePos.x > windowX-rectSize || enePos.x < 0 ){
-            enemyVelocity.y *= -1;
-            
-            
-        }
-        if(enePos.y > windowY - rectSize || enePos.y  < 0){
-            enemyVelocity.y *= -1;
-            enemyVelocity.x *= -1;
-            
-            
-        }
-        enePos.x += enemyVelocity.x;
-        enePos.y += enemyVelocity.y;
-        
-        
-       
-        
+    
         
         
         
@@ -167,18 +163,43 @@ int main(void){
             enemyChars[i].position.y += enemyChars[i].velocity.y;
             
             
-            if(enemyChars[i].position.x <= enemyChars[i].size.x || enemyChars[i].position.x >= windowX - enemyChars[i].size.x){
+            
+            if(enemyChars[i].position.x < 0 || enemyChars[i].position.x > windowX - enemyChars[i].texture.width){
             enemyChars[i].velocity.x *= -1;
             }
                 
-            if(enemyChars[i].position.y <= enemyChars[i].size.y || enemyChars[i].position.y >=  windowY - enemyChars[i].size.y){
+            if(enemyChars[i].position.y < enemyChars[i].size.y || enemyChars[i].position.y >  windowY - enemyChars[i].texture.height){
                 enemyChars[i].velocity.y *= -1;
                 
             }
             
+            enemyChars[i].rect = (Rectangle){enemyChars[i].position.x, enemyChars[i].position.y, enemyChars[i].texture.width, enemyChars[i].texture.height};
+            
         }
        
         //ENEMY CODE ::END::
+        
+        //CHECK FOR COLLISION PLAYER ENEMY COLLISION
+        bool playerCollided;
+        
+        Rectangle playerRect = { player.position.x, player.position.y, player.texture.width, player.texture.height};
+        playerCollided = false;
+        snprintf(healthCountStr, sizeof(healthCountStr), "%d", healthCount);
+        
+        for (int i = 0; i < enemyCount; i++) {
+            if (CheckCollisionRecs(playerRect, enemyChars[i].rect)) {
+                
+                if(!enemyChars[i].isHit){
+                    enemyChars[i].isHit = true;
+                    healthCount -= damagenormal;
+                    playerCollided = true;
+                }
+                
+                break; 
+            }else{
+                enemyChars[i].isHit = false;
+            }
+        }
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
@@ -189,11 +210,20 @@ int main(void){
             
             DrawText("Score:", 5, 0, 20, DARKGRAY);
             DrawText(currentScoreString,75, 0, 20, DARKGRAY);
+            
+            
+            if(playerCollided){
+                DrawTextureV(player.texture, player.position, RED);
+                
+                
+            }
+            else{
+                DrawTextureV(player.texture, player.position, WHITE);
+            }
+            snprintf(healthCountStr, sizeof(healthCountStr), "%d", healthCount);
+            
             DrawText("Health:", 5, 20, 20, DARKGRAY);
-            DrawText("100", 75, 20, 20, DARKGRAY);
-            
-            DrawTextureV(player.texture, player.position, WHITE);
-            
+            DrawText(healthCountStr, 75, 20, 20, DARKGRAY);
             
             
                 
