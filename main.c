@@ -64,8 +64,7 @@ int main(void){
     
   
     
-    Vector2 enemyVelocity = {8, 3};
-    Vector2 enePos = {0, 0};
+   
     
     
     
