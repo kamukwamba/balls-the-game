@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include <stdio.h>
-
+#define STBTN 2
 
 typedef struct{
     Vector2 position;
@@ -20,6 +20,9 @@ typedef struct{
     Rectangle rect;
     bool isHit;
 }EnemyChar;
+
+
+typedef enum GameScreen{ Logo = 0,  HomeScreen, GamePlay, Ending} GameScreen;
 
 
 EnemyChar CreateEnemy(int screenWidth, int screenHeight, Texture2D enemyTexture){
@@ -61,14 +64,23 @@ int main(void){
     int healthCount = 100;
     char healthCountStr[4] = "100";
     int damagenormal = 5;
+    bool btnAction;
+    int btnState;
+    Texture2D button = LoadTexture("assets/sprites/ui/startbtn.png");
     
-  
+    float framewidth = button.width/STBTN;
+    Rectangle sourceRec = {0,0, framewidth, button.height};
     
+    Rectangle btnBounds = {windowX/2.0f - button.width/STBTN/2, windowY/2.0f, button.width, framewidth};
+    
+    
+   int startbtnState = 0;
+   bool startbtnAction = false;
    
+   Vector2 mousePoint = {0, 0};
     
-    
-    
-    
+    GameScreen currentScreen = Logo;
+    int frameCounter = 0;
     
     
    
@@ -107,6 +119,58 @@ int main(void){
     SetTargetFPS(60);
     while(!WindowShouldClose()){
         
+        
+        
+        switch (currentScreen){
+            case Logo:{
+                frameCounter++;
+                if (frameCounter > 300){
+                    currentScreen = HomeScreen;
+                }
+            }break;
+            case HomeScreen:{
+                mousePoint = GetMousePosition();
+                btnAction = false;
+
+                if (CheckCollisionPointRec(mousePoint, btnBounds))
+                {
+                    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) 
+                    {
+                        btnState = 2;
+                    }
+                    else
+                    { 
+                    btnState = 1;
+                    }
+
+                    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+                    { 
+                    btnAction = true;
+                    }
+                }
+                else 
+                {
+                    btnState = 0;
+                }
+
+                if (btnAction)
+                {
+                   currentScreen = GamePlay;
+                }
+                
+                sourceRec.x = btnState*framewidth;
+              
+            }break;
+            
+            
+           case GamePlay:{
+            if(IsKeyPressed(KEY_END)){
+                currentScreen = HomeScreen;
+            } 
+            }break;
+        }
+            
+  
        
         
         player.velocity.x = 0;
@@ -123,6 +187,10 @@ int main(void){
         if(scorecounter == 60){
             currentScoreInt += 1;
             scorecounter = 0;
+        }
+        if(currentScoreInt == 60)
+        {
+            currentScreen = HomeScreen;
         }
         
         //PLAYER CODE ::START::
@@ -204,35 +272,57 @@ int main(void){
             ClearBackground(RAYWHITE);
             
             
+            switch(currentScreen)
+            {
+                case Logo:
+                {
+                    DrawText("BALLS THE GAME", 220, 100, 40, BLACK);
+                }break;
+                case HomeScreen:
+                {
+                    DrawText("Balls The Game", 250, 100, 40, DARKGREEN);
+                    DrawTextureRec(button, sourceRec, (Vector2){ btnBounds.x, btnBounds.y }, WHITE);
+                    DrawText("Top Score", 250, 300, 40, DARKGREEN);
+                    DrawText("Settings", 250, 350, 40, DARKGREEN);
+                    
+                    
+                }break;
+                case GamePlay:
+                {
+                     DrawText("Score:", 5, 0, 20, DARKGRAY);
+                    DrawText(currentScoreString,75, 0, 20, DARKGRAY);
+                    
+                    
+                    if(playerCollided){
+                        DrawTextureV(player.texture, player.position, RED);
+                        
+                        
+                    }
+                    else{
+                        DrawTextureV(player.texture, player.position, WHITE);
+                    }
+                    snprintf(healthCountStr, sizeof(healthCountStr), "%d", healthCount);
+                    
+                    DrawText("Health:", 5, 20, 20, DARKGRAY);
+                    DrawText(healthCountStr, 75, 20, 20, DARKGRAY);
+                    
+                    
+                        
+                    for(int i = 0; i < enemyCount; i++){
+                       
+                        
+                        DrawTextureV(enemyChars[i].texture,enemyChars[i].position, WHITE);
+                        
+                    }
             
-            
-            
-            DrawText("Score:", 5, 0, 20, DARKGRAY);
-            DrawText(currentScoreString,75, 0, 20, DARKGRAY);
-            
-            
-            if(playerCollided){
-                DrawTextureV(player.texture, player.position, RED);
-                
-                
+                }break;
+                default: break;
             }
-            else{
-                DrawTextureV(player.texture, player.position, WHITE);
-            }
-            snprintf(healthCountStr, sizeof(healthCountStr), "%d", healthCount);
-            
-            DrawText("Health:", 5, 20, 20, DARKGRAY);
-            DrawText(healthCountStr, 75, 20, 20, DARKGRAY);
             
             
-                
-            for(int i = 0; i < enemyCount; i++){
-               
-                
-                DrawTextureV(enemyChars[i].texture,enemyChars[i].position, WHITE);
-                
-            }
             
+            
+           
           
         EndDrawing();
            
